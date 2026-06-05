@@ -6,6 +6,45 @@ This allows you to access a web page hosted on your ESP32 device using a friendl
 
 ---
 
+## Understanding mDNS (Multicast DNS)
+
+In traditional networking, when you type a domain name (like `google.com`) into your browser, a central **DNS (Domain Name System)** server resolves that domain into an IP address. On local home or office networks, however, setting up and maintaining a local DNS server can be complicated and impractical. This is where **mDNS** comes in.
+
+### How mDNS Works
+- **Zero Configuration (ZeroConf):** mDNS (defined in [RFC 6762](https://datatracker.ietf.org/doc/html/rfc6762)) operates peer-to-peer without requiring a central server.
+- **Multicast Queries:** When a client wants to resolve a local hostname like `object_a.local`, it sends a multicast query packet to the local network (IPv4 address `224.0.0.251` or IPv6 address `ff02::fb` on UDP port `5353`).
+- **Direct Responses:** Every mDNS-enabled device on the network listens to this multicast address. The device claiming the hostname `object_a` (here, our ESP32) responds directly by broadcasting its IP address to the network.
+- **The `.local` TLD:** The `.local` Top-Level Domain is specifically reserved for link-local networks. Standard DNS servers ignore these queries, leaving them to be resolved strictly by mDNS.
+
+### A Concrete Example: Traditional DNS vs. mDNS (Nodes A, B, and C)
+
+To see the difference, imagine three devices (or objects) on a local network: **Device A**, **Device B**, and **Device C**.
+
+#### Scenario 1: Traditional Centralized DNS (or Host Files)
+Suppose **Device B** is acting as a central server (or local DNS resolver / coordinator) that maintains a mappings database (like a hosts file or DNS record list).
+1. **Device C** wants to request information from **Device A**.
+2. **Device C** doesn't know where **Device A** is. It has to query the central coordinator **Device B**: *"Where is Device A?"*
+3. **Device B** looks up its local configuration database/files and replies: *"Device A is at IP 192.168.1.10"*.
+4. **Device C** can then contact **Device A**.
+* **The Problem:** If Device B goes offline, or if its configuration files are incorrect, Device C can no longer find Device A. Every time a device joins or changes its IP address, the central server (Device B) must be manually or dynamically updated.
+
+#### Scenario 2: Decentralized mDNS (The Peer-to-Peer Approach)
+With mDNS, there is no central server B. **Every device (A, B, and C) acts as its own DNS server.**
+1. **Device C** wants to connect to **Device A** (`object_a.local`).
+2. **Device C** simply broadcasts a query to the entire network: *"Who has the hostname `object_a.local`?"*
+3. **Device B** hears the query but ignores it because its hostname is not `object_a`.
+4. **Device A** hears the query, recognizes its own name, and responds directly: *"I am `object_a.local`, and my IP is 192.168.1.10"*.
+5. **Device C** receives the answer and connects directly.
+* **The Solution:** By removing the central authority, mDNS turns all devices into peer servers that publish their own domain names and services locally. It requires zero configuration, works instantly out of the box, and handles dynamic IP changes gracefully.
+
+### Service Discovery (DNS-SD)
+Beyond basic hostname resolution, mDNS supports **DNS-Based Service Discovery (DNS-SD)** (defined in [RFC 6763](https://datatracker.ietf.org/doc/html/rfc6763)). This allows devices to advertise their capabilities:
+- **Service Name & Protocol:** Our ESP32 advertises a web server using the format `_http._tcp` (HTTP web service over TCP protocol).
+- **Port:** It broadcasts that the service is running on port `80`.
+- **TXT Records:** It provides additional attributes in key-value format (such as `path=/`), helping applications (like Apple's Bonjour or Linux's Avahi) automatically discover and connect to the web server without user configuration.
+
+---
+
 ## Features
 
 - **Wi-Fi STA mode initialization**: Connects automatically to a configured local Wi-Fi Access Point with retry logic.
@@ -123,6 +162,8 @@ Run the following commands using the ESP-IDF command line terminal:
      > **Hello World**
      >
      > ESP32 mDNS Demo.
+
+   ![ESP32 Web Server Webpage Screenshot](http.jpeg)
 
 4. **Query mDNS using CLI**:
    You can also verify that the mDNS responder is working on your local network using terminal commands:
