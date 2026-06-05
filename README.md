@@ -21,6 +21,9 @@ In traditional networking, when you type a domain name (like `google.com`) into 
 To see the difference, imagine three devices (or objects) on a local network: **Device A**, **Device B**, and **Device C**.
 
 #### Scenario 1: Traditional Centralized DNS (or Host Files)
+
+![Traditional DNS Diagram](DNS.png)
+
 Suppose **Device B** is acting as a central server (or local DNS resolver / coordinator) that maintains a mappings database (like a hosts file or DNS record list).
 1. **Device C** wants to request information from **Device A**.
 2. **Device C** doesn't know where **Device A** is. It has to query the central coordinator **Device B**: *"Where is Device A?"*
@@ -29,6 +32,9 @@ Suppose **Device B** is acting as a central server (or local DNS resolver / coor
 * **The Problem:** If Device B goes offline, or if its configuration files are incorrect, Device C can no longer find Device A. Every time a device joins or changes its IP address, the central server (Device B) must be manually or dynamically updated.
 
 #### Scenario 2: Decentralized mDNS (The Peer-to-Peer Approach)
+
+![Decentralized mDNS Diagram](mDNS.png)
+
 With mDNS, there is no central server B. **Every device (A, B, and C) acts as its own DNS server.**
 1. **Device C** wants to connect to **Device A** (`object_a.local`).
 2. **Device C** simply broadcasts a query to the entire network: *"Who has the hostname `object_a.local`?"*
