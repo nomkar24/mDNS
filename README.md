@@ -185,3 +185,8 @@ Run the following commands using the ESP-IDF command line terminal:
      ```bash
      avahi-browse -r _http._tcp
      ```
+
+---
+
+⭐ **Star this Repository!**
+If you found this project helpful, give it a star to show your support!
